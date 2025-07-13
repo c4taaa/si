@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Malla Curricular Interactiva</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Malla Curricular Interactiva</h1>
+  <div id="contenedor"></div>
+
+  <script src="ramos.js"></script>
+  <script>
+    const contenedor = document.getElementById('contenedor');
+    const aprobados = new Set();
+
+    function crearMalla() {
+      for (let s = 1; s <= 10; s++) {
+        const semestreDiv = document.createElement('div');
+        semestreDiv.className = 'semestre';
+        const titulo = document.createElement('h2');
+        titulo.textContent = `${s}° Semestre`;
+        semestreDiv.appendChild(titulo);
+
+        ramos.filter(r => r.semestre === s).forEach(ramo => {
+          const div = document.createElement('div');
+          div.className = 'ramo';
+          div.id = ramo.id;
+          div.textContent = ramo.nombre;
+          div.dataset.req = (ramo.req || []).join(' ');
+          semestreDiv.appendChild(div);
+        });
+
+        contenedor.appendChild(semestreDiv);
+      }
+    }
+
+    function actualizarRamos() {
+      document.querySelectorAll('.ramo').forEach(div => {
+        const reqs = div.dataset.req ? div.dataset.req.split(' ') : [];
+        const todosCumplidos = reqs.every(r => aprobados.has(r));
+
+        if (reqs.length === 0 || todosCumplidos) {
+          div.classList.remove('bloqueado');
+          if (!div.classList.contains('aprobado')) {
+            div.classList.add('desbloqueado');
+          }
+        } else {
+          div.classList.remove('desbloqueado', 'aprobado');
+          div.classList.add('bloqueado');
+        }
+      });
+    }
+
+    contenedor.addEventListener('click', e => {
+      if (e.target.classList.contains('ramo') && e.target.classList.contains('desbloqueado')) {
+        const id = e.target.id;
+        if (e.target.classList.contains('aprobado')) {
+          e.target.classList.remove('aprobado');
+          aprobados.delete(id);
+        } else {
+          e.target.classList.add('aprobado');
+          aprobados.add(id);
+        }
+        actualizarRamos();
+      }
+    });
+
+    window.onload = () => {
+      crearMalla();
+      actualizarRamos();
+    }
+  </script>
+</body>
+</html>
